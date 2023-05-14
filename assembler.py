@@ -41,6 +41,38 @@ def assign_var_memory(variables, n):
         d[i]=decimal_to_binary(n)
     return d
 
+def do_1(x):
+    global res
+    res += opcodes[x[0]] + '00' + registers[x[1]] + registers[x[2]] + registers[x[3]] + '\n'
+
+def do_2(x):
+    global res
+    if x[0] == 'mov':
+        res += opcodes["movI"]
+    else:
+        res += opcodes[x[0]]
+    res += '0' + registers[x[1]] + decimal_to_binary(int(x[2][1:])) + '\n'
+
+def do_3(x):
+    global res
+    if x[0] == 'mov':
+        res += opcodes["movR"]
+    else:
+        res += opcodes[x[0]]
+    res += '00000' + registers[x[1]] + registers[x[2]] + '\n'
+
+def do_4(x):
+    global res
+    res += opcodes[x[0]] + '0' + registers[x[1]] + var_memory[x[2]] + '\n'
+
+def do_5(x):
+    global res
+    res = opcodes[x[0]] + '0000' + labels[x[1]] + '\n'
+
+def do_6(x):
+    global res
+    res += opcodes[x[0]] + '00000000000'
+
 
 opcodes = {
     "add"  :"00000", "sub"  :"00001", "movI" :"00010", "movR" :"00011",
@@ -72,31 +104,23 @@ for i in instructions:
     x = i.split()
     if x[0] == 'mov':
         if '$' in x[2]:
-            #do_2(x)
-            pass
+            do_2(x)
         else:
-            #do_3(x)
-            pass
+            do_3(x)
         continue
     y = inst_type[x[0]]
     if y == 1:
-        #do_1(x)
-        pass
+        do_1(x)
     if y == 2:
-        #do_2(x)
-        pass
+        do_2(x)
     if y == 3:
-        #do_3(x)
-        pass
+        do_3(x)
     if y == 4:
-        #do_4(x)
-        pass
+        do_4(x)
     if y == 5:
-        #do_5(x)
-        pass
+        do_5(x)
     if y == 6:
-        #do_6(x)
-        pass
+        do_6(x)
 
 f=open('output.txt','w')
 f.write(res)
