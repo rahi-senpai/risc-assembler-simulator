@@ -1,23 +1,13 @@
-# Computer Organisation
-Create a binary assembler and a simulator for testing it
-
-CSE112 - Computer Organisation
-
-Semester Group Project
+Starter repository for Computer Organisation (CSE112), Semester Group Project
 
 # Collaborators
 Himanshu Raj [@rahi-senpai](https://www.github.com/rahi-senpai)
-
 Aayush Mishra [@alexaplsburp](https://www.github.com/alexaplsburp)
-
 Dhruv Prakash [@14dhruv04](https://www.github.com/14dhruv04)
-
 Kirti Jain [@kiwiikirtii](https://www.github.com/kiwiikirtii)
 
-
 # Instructions
-The assembler code is in `Assembler/assembler.py`.
+The assembler code is in `Simple-Assembler/assembler.py`.
+The assembler reads from `stdin` and writes to `stdout`.
 
-Input is taken via `Assembler/input.txt`.
-
-Output is generated in `Assembler/ouput.txt`.
+To evaluate, go to the `automatedTesting` directory in your terminal and execute `./run` with appropriate arguments (`--no-sim`: does not evaluate the simulator).

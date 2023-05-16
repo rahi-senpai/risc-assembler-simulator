@@ -1,3 +1,4 @@
+import sys
 global res
 global karp
 global line_count
@@ -8,7 +9,7 @@ def decimal_to_binary(n):
     global karp
     if n>127 or n<0:
         # print('illegal immediate value')
-        f.write('error in line '+ str(line_count) +': illegal immediate value')
+        sys.stdout.write('error in line '+ str(line_count) +': illegal immediate value\n')
         karp = False
         return
     res = ''
@@ -20,10 +21,10 @@ def decimal_to_binary(n):
     return res
 
 #function to read and get data
-def process_data(x):
-    f = open(x)
+def process_data():
+    # f = open(x)
     code = []
-    for i in f.readlines():
+    for i in sys.stdin:
         if not(i.isspace()):
             code.append(i.strip())
     return code
@@ -67,7 +68,7 @@ def check_halt(instructions):
 def do_1(x):
     global res, karp
     if len(x) != 4:
-        f.write('error in line '+ str(line_count) +': invalid instruction format')
+        sys.stdout.write('error in line '+ str(line_count) +': invalid instruction format\n')
         karp = False
         return
     try:
@@ -75,13 +76,13 @@ def do_1(x):
     except KeyError:
         karp = False
         # print('typos in register')
-        f.write('error in line '+ str(line_count) +': typos in register')
+        sys.stdout.write('error in line '+ str(line_count) +': typos in register\n')
 
 # function to perform type-B encoding
 def do_2(x):
     global res, karp
     if len(x) != 3:
-        f.write('error in line '+ str(line_count) +': invalid instruction format')
+        sys.stdout.write('error in line '+ str(line_count) +': invalid instruction format\n')
         karp = False
         return
     if x[0] == 'mov':
@@ -90,19 +91,19 @@ def do_2(x):
         res += opcodes[x[0]]
     if x[1] not in registers:
         karp = False
-        f.write('error in line '+ str(line_count) +': typos in register')
+        sys.stdout.write('error in line '+ str(line_count) +': typos in register\n')
         return
     try:
         res += '0' + registers[x[1]] + decimal_to_binary(int(x[2][1:])) + '\n'
     except:
         karp = False
-        f.write(' error in line '+ str(line_count) +': ' + str(x[2]) + ' is not defined')
+        sys.stdout.write(' error in line '+ str(line_count) +': ' + str(x[2]) + ' is not defined\n')
 
 # function to perform type-C encoding
 def do_3(x):
     global res, karp
     if len(x) != 3:
-        f.write('error in line '+ str(line_count) +': invalid instruction format')
+        sys.stdout.write('error in line '+ str(line_count) +': invalid instruction format\n')
         karp = False
         return
     if x[0] == 'mov':
@@ -114,28 +115,28 @@ def do_3(x):
     except KeyError:
         karp = False
         # print('typos in register')
-        f.write('error in line '+ str(line_count) +': typos in register')
+        sys.stdout.write('error in line '+ str(line_count) +': typos in register\n')
 
 # function to perform type-D encoding
 def do_4(x):
     global res, karp
     if len(x) != 3:
-        f.write('error in line '+ str(line_count) +': invalid instruction format')
+        sys.stdout.write('error in line '+ str(line_count) +': invalid instruction format\n')
         karp = False
         return
     if x[1] not in registers:
         karp = False
         # print('typos in register')
-        f.write('error in line '+ str(line_count) +': typos in register')
+        sys.stdout.write('error in line '+ str(line_count) +': typos in register\n')
     if x[2] not in variables:
         karp = False
         if x[1] in labels:
             # print('misuse of label as variable')
-            f.write('error in line '+ str(line_count) +': misuse of label as variable')
+            sys.stdout.write('error in line '+ str(line_count) +': misuse of label as variable\n')
             return
         else:
             # print('undefined variable')
-            f.write('error in line '+ str(line_count) +': undefined variable, no variable named '+ str(x[2]))
+            sys.stdout.write('error in line '+ str(line_count) +': undefined variable, no variable named '+ str(x[2])+'\n')
             return
     res += opcodes[x[0]] + '0' + registers[x[1]] + var_memory[x[2]] + '\n'
 
@@ -143,18 +144,18 @@ def do_4(x):
 def do_5(x):
     global res, karp
     if len(x) != 2:
-        f.write('error in line '+ str(line_count) +': invalid instruction format')
+        sys.stdout.write('error in line '+ str(line_count) +': invalid instruction format\n')
         karp = False
         return
     if x[1] not in labels:
         karp = False
         if x[1] in variables:
             # print('misuse of variable as label')
-            f.write('error in line '+ str(line_count) +': misuse of variable as label')
+            sys.stdout.write('error in line '+ str(line_count) +': misuse of variable as label\n')
             return
         else:
             # print('undefined label')
-            f.write('error in line '+ str(line_count) +': undefined label, no label named '+ str(x[1]))
+            sys.stdout.write('error in line '+ str(line_count) +': undefined label, no label named '+ str(x[1])+'\n')
             return
     res += opcodes[x[0]] + '0000' + labels[x[1]] + '\n'
 
@@ -184,9 +185,9 @@ registers = {'R0': '000','R1': '001','R2': '010','R3': '011','R4': '100','R5': '
 
 karp = True
 input_file = 'input.txt'
-code = process_data(input_file)
+code = process_data()
 
-f=open('output.txt','w')
+# f=open('output.txt','w')
 #checking variables
 variables = check_variables(code)
 #getting instructions
@@ -201,15 +202,15 @@ halt,last_halt = check_halt(instructions)
 if not(last_halt) and halt>0:
     karp = False
     # print("hlt is not the last instruction")
-    f.write('error: hlt is not the last instruction')
+    sys.stdout.write('error: hlt is not the last instruction\n')
 if halt>1:
     karp = False
     # print("more than one hlt instruction is present")
-    f.write('error: more than one hlt instruction is present')
+    sys.stdout.write('error: more than one hlt instruction is present\n')
 if halt == 0:
     karp = False
     # print("hlt instruction is missing")
-    f.write('error: hlt instruction is missing')
+    sys.stdout.write('error: hlt instruction is missing\n')
 
 
 res, line_count = '', len(variables)
@@ -220,7 +221,7 @@ for i in instructions:
         if 'var' in x and len(x)==2:
             karp = False
             # print("variable not declared at beginning")
-            f.write('error in line '+ str(line_count) +': variable not declared at beginning')
+            sys.stdout.write('error in line '+ str(line_count) +': variable not declared at beginning\n')
             break
         if ':' in i:
             x = x[1:]
@@ -233,12 +234,12 @@ for i in instructions:
         if 'FLAGS' in x:
             karp = False
             # print("illegal use of flags register")
-            f.write('error in line '+ str(line_count) +': illegal use of flags register')
+            sys.stdout.write('error in line '+ str(line_count) +': illegal use of flags register\n')
             break
         if x[0] not in inst_type.keys():
             karp = False
             # print("typos in instruction")
-            f.write('error in line '+ str(line_count) +': typos in instruction, no instruction named '+ str(x[0]))
+            sys.stdout.write('error in line '+ str(line_count) +': typos in instruction, no instruction named '+ str(x[0])+'\n')
             break
         y = inst_type[x[0]]
         if y == 1:
@@ -256,8 +257,8 @@ for i in instructions:
 
 
 if karp:
-    f.write(res)
-    print("output generated successfully in output.txt")
-else:
-    print("an error was encountered while generating output")
-f.close()
+    sys.stdout.write(res)
+    # print("output generated successfully in output.txt")
+# else:
+    # print("an error was encountered while generating output")
+# f.close()
