@@ -18,6 +18,7 @@ def binary_to_decimal(s):
 def ee_execute(s):
     if s!="1101000000000000":
         opcode= s[:5]
+
         if opcode == "00000": #add
             rd=registers[s[7:10]]
             rs1=registers[s[10:13]]
@@ -30,7 +31,6 @@ def ee_execute(s):
                 rf['FLAGS'][-4] = '0'  # Clear flags
                 rf[rd]=result
 
-
         elif opcode == "00001": #sub
             rd=registers[s[7:10]]
             rs1=registers[s[10:13]]
@@ -42,7 +42,6 @@ def ee_execute(s):
                 rf[rd]=rf[rs1]-rf[rs2]
                 rf['FLAGS'][-4] = '0'  # Clear flags
 
-            
         elif opcode == "00110":  # mul
             rd = registers[s[7:10]]
             rs1 = registers[s[10:13]]
@@ -55,7 +54,6 @@ def ee_execute(s):
                 rf['FLAGS'][-4] = '0'  # Clear flags
                 rf[rd]=result
 
-
         elif opcode == "00111":  # div
             rs1 = registers[s[10:13]]
             rs2 = registers[s[13:16]]
@@ -67,7 +65,7 @@ def ee_execute(s):
                 rf['FLAGS'][-4] = '1' #overflow flag
                 rf['R0']=0
                 rf['R1']=0
-        
+
         elif opcode == "01110": #cmp
             rs1 = registers[s[10:13]]
             rs2 = registers[s[13:16]]
@@ -77,6 +75,32 @@ def ee_execute(s):
                 rf['FLAGS'][-3]='1'
             elif rf[rs1]==rf[rs2]:  #equal
                 rf['FLAGS'][-1]='1'
+
+        elif opcode == "00010": #movI
+            rd=registers[s[6:9]]
+            rf[rd]= binary_to_decimal(s[9:16])
+
+        elif opcode == "00011": #movR
+            rd = registers[s[10:13]]
+            rs = registers[s[13:16]]
+            rf[rd] = rd[rs]
+
+        elif opcode == "01000": #rs
+            imm = binary_to_decimal(s[9:16])
+            rd = registers[s[6:9]]
+            rf[rd] = rd>>imm
+
+        elif opcode == "01001": #ls
+            imm = binary_to_decimal(s[9:16])
+            rd = registers[s[6:9]]
+            rf[rd] = rd<<imm
+
+        elif opcode == "01111": #jmp
+            pc = binary_to_decimal(s[9:16])-1
+
+        elif opcode == "01111": #jlt
+            if rf['FLAGS'][-3]=='1':
+                pc = binary_to_decimal(s[9:16])-1
 
         return False, pc+1
     else:
