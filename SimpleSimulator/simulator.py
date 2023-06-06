@@ -9,7 +9,7 @@ def decimal_to_binary(n):
         res = '0'*(7-len(res)) + res
     return res
 
-def binart_to_decimal(s):
+def binary_to_decimal(s):
     res=0
     for i in range((len(s))):
         res += int(s[i])*(2**(len(s)-i-1))
@@ -17,6 +17,67 @@ def binart_to_decimal(s):
 
 def ee_execute(s):
     if s!="1101000000000000":
+        opcode= s[:5]
+        if opcode == "00000": #add
+            rd=registers[s[7:10]]
+            rs1=registers[s[10:13]]
+            rs2 = registers[s[13:16]]
+            result=rf[rs1]+rf[rs2]
+            if result > 127:
+                rf['FLAGS'][-4] = '1' #overflow flag
+                rf[rd]=0
+            else:
+                rf['FLAGS'][-4] = '0'  # Clear flags
+                rf[rd]=result
+
+
+        elif opcode == "00001": #sub
+            rd=registers[s[7:10]]
+            rs1=registers[s[10:13]]
+            rs2 = registers[s[13:16]]
+            if rf[rs2]>rf[rs1]:
+                rf['FLAGS'][-4] = '1' #overflow flag
+                rf[rd]=0
+            else:
+                rf[rd]=rf[rs1]-rf[rs2]
+                rf['FLAGS'][-4] = '0'  # Clear flags
+
+            
+        elif opcode == "00110":  # mul
+            rd = registers[s[7:10]]
+            rs1 = registers[s[10:13]]
+            rs2 = registers[s[13:16]]
+            result = rf[rs1] * rf[rs2]
+            if result > 127:
+                rf['FLAGS'][-4] = '1' #overflow flag
+                rf[rd]=0
+            else:
+                rf['FLAGS'][-4] = '0'  # Clear flags
+                rf[rd]=result
+
+
+        elif opcode == "00111":  # div
+            rs1 = registers[s[10:13]]
+            rs2 = registers[s[13:16]]
+            if rf[rs2] != 0:
+                rf['R0'] = rf[rs1] // rf[rs2]
+                rf['R1'] = rf[rs1] % rf[rs2]
+                rf['FLAGS'][-4] = '0'  # Clear flags
+            else:
+                rf['FLAGS'][-4] = '1' #overflow flag
+                rf['R0']=0
+                rf['R1']=0
+        
+        elif opcode == "01110": #cmp
+            rs1 = registers[s[10:13]]
+            rs2 = registers[s[13:16]]
+            if rf[rs1]>rf[rs2]:     #greater
+                rf['FLAGS'][-2]='1' 
+            elif rf[rs1]<rf[rs2]:   #less
+                rf['FLAGS'][-3]='1'
+            elif rf[rs1]==rf[rs2]:  #equal
+                rf['FLAGS'][-1]='1'
+
         return False, pc+1
     else:
         return True, pc+1
