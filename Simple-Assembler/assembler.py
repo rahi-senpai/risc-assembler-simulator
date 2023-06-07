@@ -1,3 +1,7 @@
+# for floating point numbers it is assumed that they are normalised numbers, i.e. (1+m)
+# we calculated the range of floating point numbers, with 3 as bias for exponent and exponent ranges in [-2,3], to be [0.01, 15.75]
+# and since we have only 5 bits for mantissa, we are limited to very few values for floating point numbers
+# and we are not approximating the floating point number to the nearest one rather considering only exact value
 import sys
 global res
 global karp
@@ -164,13 +168,41 @@ def do_6(x):
     global res
     res += opcodes[x[0]] + '00000000000'
 
+# function to perform movf(8bit immediate)
+def do_22(x):
+    global res, karp
+    di = {0.5: '1', 0.75: '11', 0.625: '101', 0.875: '111', 0.5625: '1001', 0.6875: '1011', 0.8125: '1101', 0.9375: '1111',
+          0.53125: '10001', 0.59375: '10011', 0.65625: '10101', 0.71875: '10111', 0.78125: '11001', 0.84375: '11011', 
+          0.90625: '11101', 0.96875: '11111', 0.25: '01', 0.125: '001', 0.375: '011', 0.0625: '0001', 0.1875: '0011', 
+          0.3125: '0101', 0.4375: '0111', 0.03125: '00001', 0.09375: '00011', 0.15625: '00101', 0.21875: '00111', 
+          0.28125: '01001', 0.34375: '01011', 0.40625: '01101', 0.46875: '01111'}
+    if float(x[2][1:])>=0.01 and float(x[2][1:])<=15.75:
+        f = bin(int(float(x[2][1:])))[2:]
+        if (float(x[2][1:]) - int(float(x[2][1:]))) not in di.keys():
+            karp = False
+            sys.stdout.write('error in line '+ str(line_count) +': the floating number cant be represented in given system\n')
+            return
+        d = di[float(x[2][1:]) - int(float(x[2][1:]))]
+        if len(f)>=1 and len(d)+len(f)-1<=5:
+            cat = f[1:]+d
+            if len(cat)<5:
+                cat += '0'*(5-len(cat))
+            res += opcodes[x[0]] + registers[x[1]] + format((len(f)-1+3),'03b') + cat + '\n'
+        else:
+            karp = False
+            sys.stdout.write('error in line '+ str(line_count) +': the floating number cant be represented in given system\n')
+    else:
+        karp = False
+        sys.stdout.write('error in line '+ str(line_count) +': the floating number is out of range\n')
+
 
 opcodes = {
     "add"  :"00000", "sub"  :"00001", "movI" :"00010", "movR" :"00011",
     "ld"   :"00100", "st"   :"00101", "mul"  :"00110", "div"  :"00111",
     "rs"   :"01000", "ls"   :"01001", "xor"  :"01010", "or"   :"01011",
     "and"  :"01100", "not"  :"01101", "cmp"  :"01110", "jmp"  :"01111",
-    "jlt"  :"11100", "jgt"  :"11101", "je"   :"11111", "hlt"  :"11010"
+    "jlt"  :"11100", "jgt"  :"11101", "je"   :"11111", "hlt"  :"11010",
+    "addf" :"10000", "subf" :"11001", "movf" :"11010"
 }
 
 inst_type = {
@@ -178,7 +210,8 @@ inst_type = {
     "ld"   :4, "st"   :4, "mul"  :1, "div"  :3,
     "rs"   :2, "ls"   :2, "xor"  :1, "or"   :1,
     "and"  :1, "not"  :3, "cmp"  :3, "jmp"  :5,
-    "jlt"  :5, "jgt"  :5, "je"   :5, "hlt"  :6
+    "jlt"  :5, "jgt"  :5, "je"   :5, "hlt"  :6,
+    "addf" :1, "subf" :1, "movf" :22
 }
 
 registers = {'R0': '000','R1': '001','R2': '010','R3': '011','R4': '100','R5': '101','R6': '110','FLAGS': '111'}
@@ -197,6 +230,10 @@ labels = check_labels(instructions)
 #assigning variables memory
 var_memory = assign_var_memory(variables,len(instructions))
 
+if len(code)>128:
+    karp = False
+    sys.stdout.write('error: number of instructions are more than 128\n')
+
 #handling hlt errors
 halt,last_halt = check_halt(instructions)
 if not(last_halt) and halt>0:
@@ -212,7 +249,6 @@ if halt == 0:
     # print("hlt instruction is missing")
     sys.stdout.write('error: hlt instruction is missing\n')
 
-
 res, line_count = '', len(variables)
 for i in instructions:
     line_count+=1
@@ -226,6 +262,9 @@ for i in instructions:
         if ':' in i:
             x = x[1:]
         if 'mov' in x:
+            if x[1] == 'FLAGS':
+                karp = False
+                sys.stdout.write('error '+ str(line_count) +': illegal use of flags register\n')
             if '$' in x[2]:
                 do_2(x)
             else:
@@ -254,6 +293,8 @@ for i in instructions:
             do_5(x)
         if y == 6:
             do_6(x)
+        if y == 22:
+            do_22(x)
 
 
 if karp:
