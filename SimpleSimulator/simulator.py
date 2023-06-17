@@ -104,13 +104,13 @@ def ee_execute(s,pc):
     elif opcode == "01000": #rs
         imm = binary_to_decimal(s[9:16])
         rd = registers[s[6:9]]
-        rf[rd] = rd>>imm
+        rf[rd] = rf[rd]>>imm
         return False, pc+1
 
     elif opcode == "01001": #ls
         imm = binary_to_decimal(s[9:16])
         rd = registers[s[6:9]]
-        rf[rd] = rd<<imm
+        rf[rd] = rf[rd]<<imm
         return False, pc+1
 
     elif opcode == "01111": #jmp
@@ -165,7 +165,14 @@ def ee_execute(s,pc):
     elif opcode == "01101": #not
         rd = registers[s[10:13]]
         rs = registers[s[13:16]]
-        rf[rd] = ~rf[rs]
+        abc = decimal_to_binary(rf[rs])
+        rez = ''
+        for m in abc:
+            if m=='0':
+                rez+='1'
+            else:
+                rez+='0'
+        rf[rd] = binary_to_decimal(rez)
         return False, pc+1
 
     elif opcode == "00100": #ld
@@ -182,6 +189,7 @@ def ee_execute(s,pc):
         return False, pc+1
 
     elif opcode == "11010": #hlt
+        rf['FLAGS'] = '0000000000000000'
         return True, pc+1
 
     elif opcode == "10000": #addf
@@ -229,6 +237,7 @@ rf = {'R0':0, 'R1':0, 'R2':0, 'R3':0, 'R4':0, 'R5':0, 'R6':0, 'FLAGS': '00000000
 erb = '000000000'
 
 mem=[]
+# f=open('i.txt')
 for i in sys.stdin:
     mem.append(i.strip())
 pc=0
