@@ -1,14 +1,21 @@
-# the overflow cap for normal int operations is supposed to be 7 bits as its not very clear in the instructions
-# the overflow cap can be easily changed to be 16 bits by replacing maximum value of 127 with 65535 at two places
 import sys
 
-def decimal_to_binary(n):
+def pc_conversion(n):
     res = ''
     while (n!=0):
         res = str(n%2) + res
         n=n//2
     if len(res)<7:
         res = '0'*(7-len(res)) + res
+    return res
+
+def decimal_to_binary(n):
+    res = ''
+    while (n!=0):
+        res = str(n%2) + res
+        n=n//2
+    if len(res)<16:
+        res = '0'*(16-len(res)) + res
     return res
 
 def binary_to_decimal(s):
@@ -28,10 +35,10 @@ def ee_execute(s,pc):
         rd=registers[s[7:10]]
         rs1=registers[s[10:13]]
         rs2 = registers[s[13:16]]
-        result=rf[rs1]+rf[rs2]
-        if result > 127:
+        result=decimal_to_binary(binary_to_decimal(rf[rs1])+binary_to_decimal(rf[rs2]))
+        if result > '1111111111111111':
             rf['FLAGS'] = '0000000000001000' #overflow flag
-            rf[rd]=0
+            rf[rd]='0000000000000000'
         else:
             rf[rd]=result
             rf['FLAGS'] = '0000000000000000'
@@ -43,9 +50,9 @@ def ee_execute(s,pc):
         rs2 = registers[s[13:16]]
         if rf[rs2]>rf[rs1]:
             rf['FLAGS'] = '0000000000001000' #overflow flag
-            rf[rd]=0
+            rf[rd]='0000000000000000'
         else:
-            rf[rd]=rf[rs1]-rf[rs2]
+            rf[rd]=decimal_to_binary(binary_to_decimal(rf[rs1])-binary_to_decimal(rf[rs2]))
             rf['FLAGS'] = '0000000000000000'
         return False, pc+1
 
@@ -53,10 +60,10 @@ def ee_execute(s,pc):
         rd = registers[s[7:10]]
         rs1 = registers[s[10:13]]
         rs2 = registers[s[13:16]]
-        result = rf[rs1] * rf[rs2]
-        if result > 127:
+        result = decimal_to_binary(binary_to_decimal(rf[rs1]) * binary_to_decimal(rf[rs2]))
+        if result > '1111111111111111':
             rf['FLAGS'] = '0000000000001000' #overflow flag
-            rf[rd]=0
+            rf[rd]='0000000000000000'
         else:
             rf[rd]=result
             rf['FLAGS'] = '0000000000000000'
@@ -66,13 +73,13 @@ def ee_execute(s,pc):
         rs1 = registers[s[10:13]]
         rs2 = registers[s[13:16]]
         if rf[rs2] != 0:
-            rf['R0'] = rf[rs1] // rf[rs2]
-            rf['R1'] = rf[rs1] % rf[rs2]
+            rf['R0'] = decimal_to_binary(binary_to_decimal(rf[rs1]) // binary_to_decimal(rf[rs2]))
+            rf['R1'] = decimal_to_binary(binary_to_decimal(rf[rs1]) % binary_to_decimal(rf[rs2]))
             rf['FLAGS'] = '0000000000000000'
         else:
             rf['FLAGS'] = '0000000000001000' #overflow flag
-            rf['R0']=0
-            rf['R1']=0
+            rf['R0']='0000000000000000'
+            rf['R1']='0000000000000000'
         return False, pc+1
 
     elif opcode == "01110": #cmp
@@ -88,15 +95,15 @@ def ee_execute(s,pc):
 
     elif opcode == "00010": #movI
         rd=registers[s[6:9]]
-        rf[rd]=binary_to_decimal(s[9:16])
+        rf[rd]=decimal_to_binary(binary_to_decimal(s[9:16]))
         return False, pc+1
 
     elif opcode == "00011": #movR
         rd = registers[s[10:13]]
         rs = registers[s[13:16]]
         if rs == 'FLAGS':
-            rf[rd] = binary_to_decimal(rf[rs])
-            rf['FLAGS'] = '0000000000000000'
+            rf[rd] = rf[rs]
+            # rf['FLAGS'] = '0000000000000000'
         else:
             rf[rd] = rf[rs]
         return False, pc+1
@@ -104,13 +111,13 @@ def ee_execute(s,pc):
     elif opcode == "01000": #rs
         imm = binary_to_decimal(s[9:16])
         rd = registers[s[6:9]]
-        rf[rd] = rf[rd]>>imm
+        rf[rd] = decimal_to_binary(binary_to_decimal(rf[rd])>>imm)
         return False, pc+1
 
     elif opcode == "01001": #ls
         imm = binary_to_decimal(s[9:16])
         rd = registers[s[6:9]]
-        rf[rd] = rf[rd]<<imm
+        rf[rd] = decimal_to_binary(binary_to_decimal(rf[rd])<<imm)
         return False, pc+1
 
     elif opcode == "01111": #jmp
@@ -145,34 +152,34 @@ def ee_execute(s,pc):
         rd = registers[s[7:10]]
         rs1 = registers[s[10:13]]
         rs2 = registers[s[13:16]]
-        rf[rd]=rf[rs1]^rf[rs2]
+        rf[rd]=decimal_to_binary(binary_to_decimal(rf[rs1]) ^ binary_to_decimal(rf[rs2]))
         return False, pc+1
 
     elif opcode == "01011": #or
         rd = registers[s[7:10]]
         rs1 = registers[s[10:13]]
         rs2 = registers[s[13:16]]
-        rf[rd]=rf[rs1]|rf[rs2]
+        rf[rd]=decimal_to_binary(binary_to_decimal(rf[rs1]) | binary_to_decimal(rf[rs2]))
         return False, pc+1
 
     elif opcode == "01100": #and
         rd = registers[s[7:10]]
         rs1 = registers[s[10:13]]
         rs2 = registers[s[13:16]]
-        rf[rd]=rf[rs1]&rf[rs2]
+        rf[rd]=decimal_to_binary(binary_to_decimal(rf[rs1]) & binary_to_decimal(rf[rs2]))
         return False, pc+1
 
     elif opcode == "01101": #not
         rd = registers[s[10:13]]
         rs = registers[s[13:16]]
-        abc = decimal_to_binary(rf[rs])
+        abc = rf[rs]
         rez = ''
         for m in abc:
             if m=='0':
                 rez+='1'
             else:
                 rez+='0'
-        rf[rd] = binary_to_decimal(rez)
+        rf[rd] = rez
         return False, pc+1
 
     elif opcode == "00100": #ld
@@ -180,11 +187,17 @@ def ee_execute(s,pc):
         r = registers[s[6:9]]
         if addr in variables:
             rf[r] = variables[addr]
+        else:
+            rf[r] = '0000000000000000'
+            vars.append(addr)
+            variables[addr] = '0000000000000000'
         return False, pc+1
 
     elif opcode == "00101": #st
         addr = binary_to_decimal(s[9:16])
         r = registers[s[6:9]]
+        if addr not in vars:
+            vars.append(addr)
         variables[addr] = rf[r]
         return False, pc+1
 
@@ -231,10 +244,10 @@ di = {0.5: '1', 0.75: '11', 0.625: '101', 0.875: '111', 0.5625: '1001', 0.6875: 
         0.3125: '0101', 0.4375: '0111', 0.03125: '00001', 0.09375: '00011', 0.15625: '00101', 0.21875: '00111', 
         0.28125: '01001', 0.34375: '01011', 0.40625: '01101', 0.46875: '01111'}
 
+vars = []
 variables = dict()
 
-rf = {'R0':0, 'R1':0, 'R2':0, 'R3':0, 'R4':0, 'R5':0, 'R6':0, 'FLAGS': '0000000000000000'}
-erb = '000000000'
+rf = {'R0':'0000000000000000', 'R1':'0000000000000000', 'R2':'0000000000000000', 'R3':'0000000000000000', 'R4':'0000000000000000', 'R5':'0000000000000000', 'R6':'0000000000000000', 'FLAGS': '0000000000000000'}
 
 mem=[]
 # f=open('i.txt')
@@ -246,12 +259,13 @@ halted=False
 while(not halted):
     inst = mem[pc]
     halted, new_pc = ee_execute(inst,pc)
-    sys.stdout.write(decimal_to_binary(pc)+'        ')
-    sys.stdout.write((f"{erb+decimal_to_binary(rf['R0'])} {erb+decimal_to_binary(rf['R1'])} {erb+decimal_to_binary(rf['R2'])} {erb+decimal_to_binary(rf['R3'])} {erb+decimal_to_binary(rf['R4'])} {erb+decimal_to_binary(rf['R5'])} {erb+decimal_to_binary(rf['R6'])} {rf['FLAGS']}\n"))
+    sys.stdout.write(pc_conversion(pc)+'        ')
+    sys.stdout.write((f"{rf['R0']} {rf['R1']} {rf['R2']} {rf['R3']} {rf['R4']} {rf['R5']} {rf['R6']} {rf['FLAGS']}\n"))
     pc = new_pc
 
-for i in variables.keys():
-    mem.insert(i,erb+decimal_to_binary(variables[i]))
+vars.sort()
+for i in vars:
+    mem.insert(i,variables[i])
 for i in mem:
     sys.stdout.write(i+"\n")
 if (len(mem)<128):
