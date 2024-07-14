@@ -7,7 +7,7 @@ The assembler code is in `Simple-Assembler/assembler.py`.<br />
 The simulator code is in `SimpleSimulator/simulator.py`.<br />
 The assembler and simulator reads from `stdin` and writes to `stdout`.<br />
 
-To evaluate, go to the `automatedTesting` directory in your terminal and execute `./run` with none or appropriate arguments:<br />
+To evaluate, go to the `automatedTesting` directory in your Linux terminal and execute `./run` with none or appropriate arguments:<br />
 `--no-sim`: to only evaluate assembler<br />
 `--no-asm`: to only evaluate simulator<br />
 
